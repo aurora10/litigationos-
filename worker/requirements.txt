@@ -1,1 +1,5 @@
+boto3>=1.34
+pillow
+psycopg[binary]>=3.2
+pytesseract>=0.3.10
 redis>=5.0
