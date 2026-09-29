@@ -94,7 +94,10 @@ def main() -> None:
     client.ping()
     print("worker: connected to redis, OCR langs:", LANGS, flush=True)
     while True:
-        item = client.blpop(QUEUE, timeout=30)
+        try:
+            item = client.blpop(QUEUE, timeout=30)
+        except redis.exceptions.TimeoutError:
+            continue  # idle timeout is normal — keep waiting
         if not item:
             continue
         msg = item[1].decode()
