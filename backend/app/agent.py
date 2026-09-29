@@ -16,6 +16,8 @@ from pydantic import BaseModel
 from app.audit import audit
 from app.deps import current_user_id
 from app import llm
+from app import agent_roles
+from app.research_tools import juportal_search, justel_search
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -124,22 +126,32 @@ def _run_task(task_id: str) -> None:
     _emit(task_id, "searching_evidence", f"Searching evidence for: {instruction[:80]}…")
     evidence = t_search_evidence(case_id, instruction, limit=5); _log_tool(task_id, "search_evidence", {"q": instruction}, evidence)
 
-    context = json.dumps({"case": case, "issues": issues, "deadlines": deadlines, "evidence": evidence}, indent=2)
+    role = agent_roles.route_role(instruction)
+    base_context = {"case": case, "issues": issues, "deadlines": deadlines, "evidence": evidence}
+    if role == "research":
+        _emit(task_id, "searching_evidence", "Searching Belgian legal sources…")
+        base_context["legal_sources"] = {
+            "jurisprudence": juportal_search(instruction),
+            "legislation": justel_search(instruction),
+        }
+        _log_tool(task_id, "search_jurisprudence", {"q": instruction}, base_context["legal_sources"]["jurisprudence"])
+        _log_tool(task_id, "search_legislation", {"q": instruction}, base_context["legal_sources"]["legislation"])
+
+    context = json.dumps(base_context, indent=2)
     _emit(task_id, "synthesizing", "Synthesizing answer…")
+    if role == "adversarial":
+        _emit(task_id, "found_contradiction", "Adversarial pass: attacking then defending…")
     try:
-        answer = llm.complete(
-            prompt=f"Case context (JSON):\n{context}\n\nTask: {instruction}",
-            system=SYSTEM,
-        )
+        answer = agent_roles.build_prompt(role, base_context, instruction)
         status = "COMPLETED"
     except Exception as e:  # noqa: BLE001
         answer = f"LLM call failed: {type(e).__name__}: {e}"
         status = "FAILED"
     with _db() as conn:
-        conn.execute("UPDATE agent_tasks SET status=%s, finished_at=now() WHERE id=%s", (status, task_id))
+        conn.execute("UPDATE agent_tasks SET status=%s, role=%s, finished_at=now() WHERE id=%s", (status, role, task_id))
         conn.execute(
             "INSERT INTO agent_actions (task_id,tool_name,tool_input,result) VALUES (%s,'llm.complete',NULL,%s)",
-            (task_id, psycopg.types.json.Json({"status": status, "answer": answer})),
+            (task_id, psycopg.types.json.Json({"status": status, "role": role, "answer": answer})),
         )
     audit("AGENT", task_id, f"TASK_{status}", "agent_task", task_id)
 
