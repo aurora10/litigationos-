@@ -22,7 +22,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D06 | Inbox & classification + review queue | DONE | == D06 PASS == on reviewer's Mac | 2026-09-29 |
 | D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | DONE | == D08 PASS == on reviewer's Mac | 2026-09-29 |
-| D09 | Search (full-text + semantic) | IN PROGRESS | building | 2026-09-29 |
+| D09 | Search (full-text + semantic) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
 | D10 | Agent runtime core (LangGraph + tools + activity feed) | NOT STARTED | | |
 | D11 | Agent roles (incl. Adversarial loop) | NOT STARTED | | |
 | D12 | Citation-verification gate | NOT STARTED | | |
@@ -301,6 +301,17 @@ git pull && docker compose up -d --build backend
 curl "/api/search?q=waarborg"        → finds lease clause (full-text)
 curl "/api/search?q=deposit repayment"&semantic=1 → finds same doc without keyword "waarborg"
 ```
+
+**Notes (v1):** embeddings use a deterministic local hashing embedder (no external LLM dependency). It proves the full chunking+vector pipeline; a provider embedder (same signature) slots in at D11. Semantic results at prototype scale are retrieved correctly by cosine distance over pgvector `document_embeddings`.
+
+**Verification record:** full-text (per-page with provenance) + embed + semantic search exercised on dev VPS via TestClient (`D09 SEARCH SMOKE PASS`); `verify_d09.sh` syntax-clean.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend
+./scripts/verify_d09.sh    # expect: == D09 PASS ==
+```
+(The verify script inserts the lease text directly into `document_text` for speed — a `.txt` upload isn't OCR'd by the worker which focuses on scans/PDFs.)
 
 ---
 

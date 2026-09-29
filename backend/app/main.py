@@ -4,7 +4,7 @@ import os
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import auth_routes, cases, documents, health, inbox, issues, timeline
+from app import auth_routes, cases, documents, health, inbox, issues, search, timeline
 from app.db import apply_migrations
 from app.deps import current_user_id
 
@@ -35,3 +35,4 @@ app.include_router(documents.router, prefix="/api", dependencies=[Depends(curren
 app.include_router(inbox.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(timeline.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(issues.router, prefix="/api", dependencies=[Depends(current_user_id)])
+app.include_router(search.router, prefix="/api", dependencies=[Depends(current_user_id)])
