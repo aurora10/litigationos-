@@ -19,7 +19,7 @@ echo "dit is een huurovereenkomst testdocument" > /tmp/d04_doc.txt
 curl -sf -X POST "$BASE/cases/$CID/documents" -H "$AUTH" -F file=@/tmp/d04_doc.txt > /tmp/d04_resp.json
 DID=$(python3 -c "import json;print(json.load(open('/tmp/d04_resp.json'))['id'])")
 HASH_API=$(python3 -c "import json;print(json.load(open('/tmp/d04_resp.json'))['file_hash'])")
-HASH_LOCAL=$(sha256sum /tmp/d04_doc.txt | cut -d' ' -f1)
+HASH_LOCAL=$(shasum -a 256 /tmp/d04_doc.txt | cut -d' ' -f1)
 [ "$HASH_API" = "$HASH_LOCAL" ] || { echo "FAIL: hash mismatch $HASH_API != $HASH_LOCAL"; exit 1; }
 echo "hash match OK ($HASH_LOCAL)"
 
