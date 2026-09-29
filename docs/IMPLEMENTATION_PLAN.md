@@ -20,7 +20,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D04 | Document storage (S3, hashing, originals) | IN PROGRESS | building | 2026-09-29 |
 | D05 | OCR pipeline | DONE | == D05 PASS == on reviewer's Mac (after fixes: blpop timeout, pgvector 3072-dim) | 2026-09-29 |
 | D06 | Inbox & classification + review queue | DONE | == D06 PASS == on reviewer's Mac | 2026-09-29 |
-| D07 | Timeline + provenance | IN PROGRESS (awaiting human verification) | tested via TestClient on dev VPS | 2026-09-29 |
+| D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | NOT STARTED | | |
 | D09 | Search (full-text + semantic) | NOT STARTED | | |
 | D10 | Agent runtime core (LangGraph + tools + activity feed) | NOT STARTED | | |
