@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS document_embeddings (
 );
 CREATE INDEX IF NOT EXISTS idx_embeddings_doc ON document_embeddings(document_id);
 -- hnsw for vector search at our scale
-CREATE INDEX IF NOT EXISTS idx_embeddings_vec ON document_embeddings USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX IF NOT EXISTS idx_embeddings_vec ON document_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
