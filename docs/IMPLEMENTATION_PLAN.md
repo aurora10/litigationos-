@@ -17,7 +17,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D01 | Infrastructure & dev environment | DONE | stack verified on reviewer's Mac (== D01 PASS ==) | 2026-09-29 |
 | D02 | Authentication (single-user) | DONE | == D02 PASS == on reviewer's Mac | 2026-09-29 |
 | D03 | Case management (CRUD + Parties) | DONE | == D03 PASS == on reviewer's Mac | 2026-09-29 |
-| D04 | Document storage (S3, hashing, originals) | IN PROGRESS | building | 2026-09-29 |
+| D04 | Document storage (S3, hashing, originals) | DONE | == D04 PASS == on reviewer's Mac | 2026-09-29 |
 | D05 | OCR pipeline | DONE | == D05 PASS == on reviewer's Mac (after fixes: blpop timeout, pgvector 3072-dim) | 2026-09-29 |
 | D06 | Inbox & classification + review queue | DONE | == D06 PASS == on reviewer's Mac | 2026-09-29 |
 | D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
