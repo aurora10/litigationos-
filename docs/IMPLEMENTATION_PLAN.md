@@ -14,8 +14,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 
 | ID | Deliverable | Status | Verified by | Date |
 |----|---|---|---|---|
-| D01 | Infrastructure & dev environment | IN PROGRESS (awaiting human verification) | code+static checks verified on dev VPS | 2026-09-29 |
-| D02 | Authentication (single-user) | NOT STARTED | | |
+| D01 | Infrastructure & dev environment | DONE | stack verified on reviewer's Mac (== D01 PASS ==) | 2026-09-29 |
+| D02 | Authentication (single-user) | IN PROGRESS (awaiting human verification) | auth flow tested via TestClient on dev VPS | 2026-09-29 |
 | D03 | Case management (CRUD + Parties) | NOT STARTED | | |
 | D04 | Document storage (S3, hashing, originals) | NOT STARTED | | |
 | D05 | OCR pipeline | NOT STARTED | | |
@@ -123,7 +123,14 @@ curl localhost:8000/api/cases            (no token)   → 401
 curl localhost:8000/api/cases -H "Authorization: Bearer $T" → 200 []
 ```
 
-**Verification record / Human verification:** as above.
+**Verification record:** auth logic tested on dev VPS via FastAPI TestClient with mocked DB: no-token `/api/cases`→401 · login→200 returns access+refresh · bearer access token → 200 [] · refresh → new access token · wrong password → 401 · refresh token used as access → 401 (token-type checked). Owner seed runs idempotently on startup (`refuse re-seed` when users exist).
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend
+./scripts/verify_d02.sh    # expect: == D02 PASS ==
+```
+Customise the seeded owner first if you want: add `OWNER_EMAIL=` / `OWNER_PASSWORD=` / `JWT_SECRET=` to your `.env` (defaults: owner@localhost.dev / change-me-now).
 
 ---
 
