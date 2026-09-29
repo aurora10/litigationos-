@@ -20,7 +20,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D04 | Document storage (S3, hashing, originals) | IN PROGRESS | building | 2026-09-29 |
 | D05 | OCR pipeline | DONE | == D05 PASS == on reviewer's Mac (after fixes: blpop timeout, pgvector 3072-dim) | 2026-09-29 |
 | D06 | Inbox & classification + review queue | DONE | == D06 PASS == on reviewer's Mac | 2026-09-29 |
-| D07 | Timeline + provenance | NOT STARTED | | |
+| D07 | Timeline + provenance | IN PROGRESS (awaiting human verification) | tested via TestClient on dev VPS | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | NOT STARTED | | |
 | D09 | Search (full-text + semantic) | NOT STARTED | | |
 | D10 | Agent runtime core (LangGraph + tools + activity feed) | NOT STARTED | | |
@@ -258,6 +258,13 @@ curl /api/cases/$CID/timeline → event present with source_id
 GET /api/search?q=keuring → returns the event's source document
 ```
 
+**Verification record:** event create/list/approve + provenance link (`document_id` + `page`) + audits exercised on dev VPS via TestClient (`D07 TIMELINE SMOKE PASS`); `verify_d07.sh` syntax-clean. (Auto-extraction of events from OCR'd docs = D06 proposals already land as PROPOSED timeline events; manual/API create carries the same provenance.)
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend
+./scripts/verify_d07.sh    # expect: == D07 PASS ==
+```
 ### D08 — Evidence, Claims & Issue tree
 **Goal:** `ISSUE → arguments FOR/AGAINST → claims → evidence` with gaps. **Depends on:** D07
 
