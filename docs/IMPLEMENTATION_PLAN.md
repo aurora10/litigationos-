@@ -23,7 +23,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | DONE | == D08 PASS == on reviewer's Mac | 2026-09-29 |
 | D09 | Search (full-text + semantic) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
-| D10 | Agent runtime core (LangGraph + tools + activity feed) | NOT STARTED | | |
+| D10 | Agent runtime core (LangGraph + tools + activity feed) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
 | D11 | Agent roles (incl. Adversarial loop) | NOT STARTED | | |
 | D12 | Citation-verification gate | NOT STARTED | | |
 | D13 | Email ingestion via n8n | NOT STARTED | | |
@@ -348,6 +348,17 @@ GET /api/agent/tasks/$TID → COMPLETED, answer with ≥1 citation block {court|
 POST /api/agent/tasks {instruction:"attack my case"} → COMPLETED with ≥3 weakness items, each sourced
 POST /api/agent/tasks {instruction:"prepare lawyer meeting"} → brief with all 12 sections present
 ```
+
+**Verification record:** task submit + tools + auditor + events + final structured output (Answer/Sources/Confidence/Open questions/Proposed next actions) tested on dev VPS via TestClient with mocked LLM + fake DB (`D10 AGENT SMOKE PASS`); `verify_d10.sh` syntax-clean. Synchronous execution v1 (moves to worker in D11).
+
+**LLM setup for live run:** in `.env` set `LLM_PROVIDER=openai`, `OPENAI_API_KEY=sk-...`, `OPENAI_MODEL=gpt-4o-mini` (already templated in `.env.example`).
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend   # (installs openai pkg)
+./scripts/verify_d10.sh    # expect: == D10 PASS ==
+```
+
 
 ### D12 — Citation-verification gate
 **Goal:** no legal proposition ships without a resolvable citation. **Depends on:** D11
