@@ -14,7 +14,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 
 | ID | Deliverable | Status | Verified by | Date |
 |----|---|---|---|---|
-| D01 | Infrastructure & dev environment | NOT STARTED | | |
+| D01 | Infrastructure & dev environment | IN PROGRESS (awaiting human verification) | code+static checks verified on dev VPS | 2026-09-29 |
 | D02 | Authentication (single-user) | NOT STARTED | | |
 | D03 | Case management (CRUD + Parties) | NOT STARTED | | |
 | D04 | Document storage (MinIO, hashing, originals) | NOT STARTED | | |
@@ -94,8 +94,16 @@ cp .env.example .env && docker compose up -d
 #         curl localhost:3000 → 200
 ```
 
-**Verification record:** _(developer pastes real output here)_
-**Human verification:** run the same two curls.
+**Verification record:** dev VPS has no Docker daemon, so full compose boot runs on the reviewer's machine (Human verification). Verified here instead:
+- `docker-compose.yml` parses, all 7 services defined (db/redis/minio/backend/worker/frontend/n8n)
+- backend imports cleanly; `GET /health` via FastAPI TestClient → `200 {'status':'degraded','db':'error','redis':'error','minio':'error'}` (expected with services down; connectivity checks wired)
+- `worker.py` AST parses; `verify_d01.sh` `bash -n` clean; frontend `npx tsc --noEmit` clean
+
+**Human verification (reviewer, on any Docker machine, e.g. your Mac):**
+```bash
+cp .env.example .env    # set the three change-me passwords
+./scripts/verify_d01.sh # expect: ... == D01 PASS ==
+```
 
 ---
 
