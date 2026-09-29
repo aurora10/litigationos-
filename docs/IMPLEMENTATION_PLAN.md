@@ -17,7 +17,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D01 | Infrastructure & dev environment | IN PROGRESS (awaiting human verification) | code+static checks verified on dev VPS | 2026-09-29 |
 | D02 | Authentication (single-user) | NOT STARTED | | |
 | D03 | Case management (CRUD + Parties) | NOT STARTED | | |
-| D04 | Document storage (MinIO, hashing, originals) | NOT STARTED | | |
+| D04 | Document storage (S3, hashing, originals) | NOT STARTED | | |
 | D05 | OCR pipeline | NOT STARTED | | |
 | D06 | Inbox & classification + review queue | NOT STARTED | | |
 | D07 | Timeline + provenance | NOT STARTED | | |
@@ -70,7 +70,7 @@ Bellwether capability — asked **"prepare for my meeting with the lawyer"**, th
 
 ## 2. Stack & repo layout
 
-See `docs/specs/ARCHITECTURE.md` for the full diagram and ADRs. TL;DR: Next.js + FastAPI + LangGraph + PostgreSQL(pgvector) + MinIO + Redis + n8n, all in docker-compose. Repo layout as in README. Configuration exclusively via `.env` (see `.env.example`); secrets never committed.
+See `docs/specs/ARCHITECTURE.md` for the full diagram and ADRs. TL;DR: Next.js + FastAPI + LangGraph + PostgreSQL(pgvector) + SeaweedFS(S3) + Redis + n8n, all in docker-compose. Repo layout as in README. Configuration exclusively via `.env` (see `.env.example`); secrets never committed.
 
 ---
 
@@ -80,10 +80,10 @@ See `docs/specs/ARCHITECTURE.md` for the full diagram and ADRs. TL;DR: Next.js +
 **Goal:** one command boots the whole local platform. **Depends on:** —
 
 **Tasks**
-- D01-T01 `docker-compose.yml`: services `db` (postgres:17 + pgvector + pg_trgm), `minio`, `redis`, `backend` (FastAPI), `frontend` (Next.js), `worker`, `n8n`; named volumes `pgdata`, `miniodata`.
+- D01-T01 `docker-compose.yml`: services `db` (postgres:17 + pgvector + pg_trgm), `s3` (SeaweedFS), `redis`, `backend` (FastAPI), `frontend` (Next.js), `worker`, `n8n`; named volumes `pgdata`, `s3data`.
 - D01-T02 `.env.example` documenting every variable.
 - D01-T03 `Makefile`/`scripts/`: `up`, `down`, `logs`, `psql`, `test`.
-- D01-T04 Backend health endpoint `GET /health` → `{"status":"ok","db":"ok","minio":"ok","redis":"ok"}`.
+- D01-T04 Backend health endpoint `GET /health` → `{"status":"ok","db":"ok","s3":"ok","redis":"ok"}`.
 - D01-T05 Frontend dev server reachable on `:3000`.
 
 **Acceptance**
@@ -95,8 +95,8 @@ cp .env.example .env && docker compose up -d
 ```
 
 **Verification record:** dev VPS has no Docker daemon, so full compose boot runs on the reviewer's machine (Human verification). Verified here instead:
-- `docker-compose.yml` parses, all 7 services defined (db/redis/minio/backend/worker/frontend/n8n)
-- backend imports cleanly; `GET /health` via FastAPI TestClient → `200 {'status':'degraded','db':'error','redis':'error','minio':'error'}` (expected with services down; connectivity checks wired)
+- `docker-compose.yml` parses, all 7 services defined (db/redis/s3/backend/worker/frontend/n8n)
+- backend imports cleanly; `GET /health` via FastAPI TestClient → `200 {'status':'degraded','db':'error','redis':'error','s3':'error'}` (expected with services down; connectivity checks wired)
 - `worker.py` AST parses; `verify_d01.sh` `bash -n` clean; frontend `npx tsc --noEmit` clean
 
 **Human verification (reviewer, on any Docker machine, e.g. your Mac):**
@@ -149,13 +149,13 @@ psql -c "select action,entity_type from audit_logs order by created_at desc limi
 ## 4. Phase 2 — Documents & Ingestion
 
 ### D04 — Document storage (immutability)
-**Goal:** originals in MinIO, hashed, never modified. **Depends on:** D03
+**Goal:** originals in S3 (SeaweedFS), hashed, never modified. **Depends on:** D03
 
 **Tasks**
 - D04-T01 Migration: `documents`, `document_versions` (Appendix A).
 - D04-T02 `POST /api/cases/{id}/documents` (multipart): compute SHA-256, store original under `originals/{uuid}/{filename}`, insert `documents` + `document_versions(type=ORIGINAL)`.
 - D04-T03 `GET /api/documents/{id}` (metadata + download URL); `GET /api/documents/{id}/text` (empty until D05).
-- D04-T04 Immutability: any write to an existing original object is rejected at the application layer; MinIO bucket versioning ON.
+- D04-T04 Immutability: any write to an existing original object is rejected at the application layer; app-layer immutability + not publicly exposed.
 
 **Acceptance**
 ```bash
@@ -375,8 +375,8 @@ psql attempt UPDATE audit_logs → permission denied
 **Goal:** sensible single-user security; recoverable data. **Depends on:** D01–D16
 
 **Tasks**
-- D17-T01 `SECURITY.md` implemented: `.env` secrets, CORS locked to frontend origin, hashed passwords, TLS at reverse proxy, MinIO not public.
-- D17-T02 Nightly `pg_dump` + MinIO sync to backup dir; `scripts/backup.sh`, `scripts/restore.sh`.
+- D17-T01 `SECURITY.md` implemented: `.env` secrets, CORS locked to frontend origin, hashed passwords, TLS at reverse proxy, S3 (SeaweedFS) not public.
+- D17-T02 Nightly `pg_dump` + S3 sync to backup dir; `scripts/backup.sh`, `scripts/restore.sh`.
 - D17-T03 Dependency pinning + basic scan in CI (GitHub Action: `pip-audit`, `npm audit`).
 
 **Acceptance**

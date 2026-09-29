@@ -43,7 +43,7 @@ litigationos/
 | Backend | FastAPI (Python) |
 | Agent runtime | LangGraph (vendor-independent LLM: Claude / GPT / Gemini) |
 | Database | PostgreSQL 17 + pgvector + pg_trgm |
-| Object storage | MinIO (immutable originals) |
+| Object storage | SeaweedFS (S3-compatible, immutable originals) |
 | Queue | Redis |
 | Automation | n8n (email ingestion, notifications) |
 | OCR / audio / video | Tesseract (nld/fra/rus) / Whisper / FFmpeg |

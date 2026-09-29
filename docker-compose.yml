@@ -24,20 +24,19 @@ services:
       retries: 12
     networks: [litnet]
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-litigation}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set in .env}
+  # Object storage (S3-compatible). SeaweedFS is used because MinIO's
+  # public Docker images were withdrawn (Hub repo deleted 2026-09-11;
+  # quay.io requires auth since 2026-09-24). `weed mini` runs
+  # master+volume+filer+s3 in one container; S3 API on :8333.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command: mini -s3.port=8333 -ip.bind=0.0.0.0
     volumes:
-      - miniodata:/data
-    ports:
-      - "9001:9001"   # console (localhost only via compose default binding)
+      - s3data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8333/ >/dev/null 2>&1 || curl -fs http://localhost:8333/ >/dev/null 2>&1 || exit 1"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 12
     networks: [litnet]
 
@@ -47,15 +46,16 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-litigation}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-litigation}
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-litigation}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      S3_ENDPOINT: http://s3:8333
+      S3_ACCESS_KEY: litigation
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set in .env}
+      S3_BUCKET: ${S3_BUCKET:-litigation-evidence}
     ports:
       - "8000:8000"
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
-      minio: {condition: service_healthy}
+      s3: {condition: service_healthy}
     networks: [litnet]
 
   worker:
@@ -64,13 +64,14 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-litigation}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-litigation}
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-litigation}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      S3_ENDPOINT: http://s3:8333
+      S3_ACCESS_KEY: litigation
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set in .env}
+      S3_BUCKET: ${S3_BUCKET:-litigation-evidence}
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
-      minio: {condition: service_healthy}
+      s3: {condition: service_healthy}
     networks: [litnet]
 
   frontend:
@@ -99,7 +100,7 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  s3data:
   n8ndata:
 
 networks:
