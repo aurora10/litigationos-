@@ -16,8 +16,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 |----|---|---|---|---|
 | D01 | Infrastructure & dev environment | DONE | stack verified on reviewer's Mac (== D01 PASS ==) | 2026-09-29 |
 | D02 | Authentication (single-user) | DONE | == D02 PASS == on reviewer's Mac | 2026-09-29 |
-| D03 | Case management (CRUD + Parties) | IN PROGRESS | building | 2026-09-29 |
-| D04 | Document storage (S3, hashing, originals) | NOT STARTED | | |
+| D03 | Case management (CRUD + Parties) | DONE | == D03 PASS == on reviewer's Mac | 2026-09-29 |
+| D04 | Document storage (S3, hashing, originals) | IN PROGRESS | building | 2026-09-29 |
 | D05 | OCR pipeline | NOT STARTED | | |
 | D06 | Inbox & classification + review queue | NOT STARTED | | |
 | D07 | Timeline + provenance | NOT STARTED | | |
@@ -181,6 +181,14 @@ curl -X POST /api/cases/$CID/documents -F file=@scan.pdf
 H2=$(psql -tc "select file_hash from documents where id=$DID")
 [ "$H1" = "$H2" ] && echo OK
 # re-run upload of a modified same-name file → new document row, original untouched
+```
+
+**Verification record:** storage layer (hash → put_original with overwrite guard → presigned URL) + upload endpoint + audit exercised on dev VPS via TestClient (`D04 DOCUMENTS SMOKE PASS`); `verify_d04.sh` syntax-clean.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build
+./scripts/verify_d04.sh    # expect: == D04 PASS ==
 ```
 
 ---
