@@ -11,5 +11,4 @@ CREATE TABLE IF NOT EXISTS document_embeddings (
     embedding VECTOR(3072)
 );
 CREATE INDEX IF NOT EXISTS idx_embeddings_doc ON document_embeddings(document_id);
--- hnsw for vector search at our scale
-CREATE INDEX IF NOT EXISTS idx_embeddings_vec ON document_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- sequential scan for now (no pgvector index supports 3072 dims; fine at prototype scale)
