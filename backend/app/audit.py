@@ -15,8 +15,8 @@ def audit(actor_type, actor_id, action, entity_type, entity_id, old=None, new=No
                 actor_id,
                 action,
                 entity_type,
-                entity_id,
-                json.dumps(old) if old is not None else None,
-                json.dumps(new) if new is not None else None,
+                str(entity_id) if entity_id is not None else None,
+                json.dumps(old, default=str) if old is not None else None,
+                json.dumps(new, default=str) if new is not None else None,
             ),
         )
