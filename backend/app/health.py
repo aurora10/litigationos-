@@ -16,16 +16,16 @@ def _check_db() -> str:
         with psycopg.connect(url, connect_timeout=3) as conn:
             conn.execute("SELECT 1")
         return "ok"
-    except Exception:
-        return "error"
+    except Exception as e:
+        return f"error: {type(e).__name__}: {e}"
 
 
 def _check_redis() -> str:
     try:
         r = redis_lib.from_url(os.environ.get("REDIS_URL", "redis://redis:6379/0"), socket_connect_timeout=3)
         return "ok" if r.ping() else "error"
-    except Exception:
-        return "error"
+    except Exception as e:
+        return f"error: {type(e).__name__}: {e}"
 
 
 def _check_s3() -> str:
@@ -39,8 +39,8 @@ def _check_s3() -> str:
         )
         client.list_buckets()
         return "ok"
-    except Exception:
-        return "error"
+    except Exception as e:
+        return f"error: {type(e).__name__}: {e}"
 
 
 @router.get("/health")
