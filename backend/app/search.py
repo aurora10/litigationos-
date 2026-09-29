@@ -37,26 +37,33 @@ def search(q: str = Query(...), case_id: UUID | None = None, semantic: bool = Qu
         if semantic:
             emb = _embed(q)
             vec_sql = "[" + ",".join(f"{v:.6f}" for v in emb) + "]"
-            rows = conn.execute(
+            base = (
                 "SELECT d.id, d.filename, de.page_number, left(de.chunk_text,300) AS excerpt,"
                 "       de.embedding <=> %s::vector AS score"
                 " FROM document_embeddings de JOIN documents d ON d.id=de.document_id"
-                " WHERE (%s IS NULL OR d.case_id=%s)"
-                " ORDER BY de.embedding <=> %s::vector LIMIT %s",
-                (vec_sql, str(case_id) if case_id else None, str(case_id) if case_id else None,
-                 vec_sql, limit),
-            ).fetchall()
+            )
+            if case_id:
+                sql = base + " WHERE d.case_id=%s ORDER BY de.embedding <=> %s::vector LIMIT %s"
+                params = (vec_sql, str(case_id), vec_sql, limit)
+            else:
+                sql = base + " ORDER BY de.embedding <=> %s::vector LIMIT %s"
+                params = (vec_sql, vec_sql, limit)
+            rows = conn.execute(sql, params).fetchall()
             kind = "semantic"
         else:
-            rows = conn.execute(
+            base = (
                 "SELECT d.id, d.filename, t.page_number, left(t.text_content,300) AS excerpt,"
                 "       ts_rank(to_tsvector('simple', t.text_content), plainto_tsquery('simple', %s)) AS score"
                 " FROM document_text t JOIN documents d ON d.id=t.document_id"
                 " WHERE to_tsvector('simple', t.text_content) @@ plainto_tsquery('simple', %s)"
-                "   AND (%s IS NULL OR d.case_id=%s)"
-                " ORDER BY score DESC LIMIT %s",
-                (q, q, str(case_id) if case_id else None, str(case_id) if case_id else None, limit),
-            ).fetchall()
+            )
+            if case_id:
+                sql = base + " AND d.case_id=%s ORDER BY score DESC LIMIT %s"
+                params = (q, q, str(case_id), limit)
+            else:
+                sql = base + " ORDER BY score DESC LIMIT %s"
+                params = (q, q, limit)
+            rows = conn.execute(sql, params).fetchall()
             kind = "fulltext"
     return {
         "query": q, "kind": kind,
