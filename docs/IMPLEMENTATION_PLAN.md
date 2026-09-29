@@ -230,6 +230,14 @@ curl -X POST /api/inbox/$IID/approve → proposals committed; timeline event exi
 psql audit_logs → REVIEW_APPROVED row with actor
 ```
 
+**Verification record:** inbox flow tested on dev VPS via TestClient with fake DB (`D06 INBOX SMOKE PASS`): upload → classification (court-letter keywords, date+deadline-hint extraction) → case-number match → proposals created → approve commits DEADLINE row → audits `INBOX_UPLOAD` + `INBOX_APPROVED` written. `verify_d06.sh` syntax-clean.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build
+./scripts/verify_d06.sh    # expect: == D06 PASS ==
+```
+Note: inbox upload needs a backend+worker rebuild (new migration `0006_inbox` runs on backend start).
 ---
 
 ## 5. Phase 3 — Case intelligence
