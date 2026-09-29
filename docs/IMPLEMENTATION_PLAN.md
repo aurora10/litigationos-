@@ -15,8 +15,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | ID | Deliverable | Status | Verified by | Date |
 |----|---|---|---|---|
 | D01 | Infrastructure & dev environment | DONE | stack verified on reviewer's Mac (== D01 PASS ==) | 2026-09-29 |
-| D02 | Authentication (single-user) | IN PROGRESS (awaiting human verification) | auth flow tested via TestClient on dev VPS | 2026-09-29 |
-| D03 | Case management (CRUD + Parties) | NOT STARTED | | |
+| D02 | Authentication (single-user) | DONE | == D02 PASS == on reviewer's Mac | 2026-09-29 |
+| D03 | Case management (CRUD + Parties) | IN PROGRESS | building | 2026-09-29 |
 | D04 | Document storage (S3, hashing, originals) | NOT STARTED | | |
 | D05 | OCR pipeline | NOT STARTED | | |
 | D06 | Inbox & classification + review queue | NOT STARTED | | |
@@ -149,6 +149,16 @@ Customise the seeded owner first if you want: add `OWNER_EMAIL=` / `OWNER_PASSWO
 curl -X POST /api/cases -d '{"title":"CASE-001 deposit","jurisdiction":"BE-Vrederechter-Leuven"}'
 curl /api/cases → contains the new case
 psql -c "select action,entity_type from audit_logs order by created_at desc limit 1" → INSERT/case
+```
+
+**Frontend (D03-T05):** `/` shows a login button + case list + create form (backend health + case CRUD in-browser).
+
+**Verification record:** case CRUD + parties + soft-archive + 4 audit writes exercised on dev VPS via FastAPI TestClient with fake DB (`D03 CASE FLOW SMOKE PASS`); frontend `tsc --noEmit` clean; `verify_d03.sh` syntax-clean.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build
+./scripts/verify_d03.sh    # expect: == D03 PASS ==
 ```
 
 ---
