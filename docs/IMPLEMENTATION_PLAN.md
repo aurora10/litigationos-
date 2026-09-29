@@ -206,7 +206,7 @@ git pull && docker compose up -d --build
 ```bash
 curl -X POST /api/cases/$CID/documents -F file=@lease_scan.pdf   # image-only PDF
 sleep 5; curl /api/documents/$DID/text → contains "huurovereenkomst"
-sha256sum check → original hash unchanged; document_versions has OCR row referencing original
+shasum -a 256 check → original hash unchanged; document_versions has OCR row referencing original
 psql audit_logs → UPLOAD, OCR_COMPLETE rows
 ```
 
