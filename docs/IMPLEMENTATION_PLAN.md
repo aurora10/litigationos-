@@ -23,8 +23,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | DONE | == D08 PASS == on reviewer's Mac | 2026-09-29 |
 | D09 | Search (full-text + semantic) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
-| D10 | Agent runtime core (LangGraph + tools + activity feed) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
-| D11 | Agent roles (incl. Adversarial loop) | NOT STARTED | | |
+| D10 | Agent runtime core (LangGraph + tools + activity feed) | DONE | == D10 PASS == on reviewer's Mac — real gpt-4o-mini call, enforced 5-section output | 2026-09-29 |
+| D11 | Agent roles (incl. Adversarial loop) | IN PROGRESS | building | 2026-09-29 |
 | D12 | Citation-verification gate | NOT STARTED | | |
 | D13 | Email ingestion via n8n | NOT STARTED | | |
 | D14 | Drafting & approval workflow | NOT STARTED | | |
