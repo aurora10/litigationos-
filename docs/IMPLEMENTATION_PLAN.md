@@ -280,6 +280,14 @@ POST claim "Landlord confirmed good condition at exit" + link provenance (doc p.
 GET /api/cases/$CID/issues/$ISID → claim listed with citation; missing-evidence field visible
 ```
 
+**Verification record:** issue tree create + FOR/AGAINST arguments + claim with provenance (doc page) + missing-gaps logic exercised on dev VPS via TestClient (`D08 ISSUES SMOKE PASS`); `verify_d08.sh` syntax-clean.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend
+./scripts/verify_d08.sh    # expect: == D08 PASS ==
+```
+
 ### D09 — Search (full-text + semantic)
 **Goal:** retrieve by keywords and by meaning. **Depends on:** D05 (text), D08 (entities)
 
