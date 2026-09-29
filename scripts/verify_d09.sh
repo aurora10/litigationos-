@@ -32,12 +32,12 @@ if ! echo "$resp" | grep -q '"document_id"'; then
     -c "SELECT page_number, left(text_content,60) FROM document_text WHERE document_id='$DID'"
   exit 1
 fi
-echo "$resp" | grep -q "\"document_id\": \"$DID\"" && echo "fulltext OK"
+echo "$resp" | grep -q "\"document_id\":[ ]*\"$DID\"" && echo "fulltext OK"
 
 echo "== semantic: same doc found by meaning without keyword =="
 curl -sf -X POST "$BASE/cases/$CID/documents/$DID/embed" -H "$AUTH" | grep -q embedded_chunks
 resp=$(curl -sf "$BASE/search?q=deposit%20repayment&semantic=1" -H "$AUTH")
-echo "$resp" | grep -q "\"document_id\": \"$DID\"" || { echo "FAIL semantic: no results"; echo "$resp"; exit 1; }
+echo "$resp" | grep -q "\"document_id\":[ ]*\"$DID\"" || { echo "FAIL semantic: no results"; echo "$resp"; exit 1; }
 echo "semantic OK"
 
 echo "== D09 PASS =="
