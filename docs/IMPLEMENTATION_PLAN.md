@@ -35,8 +35,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 
 -- from reviewer's UX gap analysis (v0.1 dogfood) --
 
-| D19 | Central structured logging | IN PROGRESS (awaiting verification) | central JSONL log + /api/logs + page | 2026-09-30 |
-| D20 | Web GUI: case setup & document upload (non-technical flow) | NOT STARTED | | |
+| D19 | Central structured logging | DONE | == D19 PASS == on reviewer's Mac | 2026-09-30 |
+| D20 | Web GUI: case setup & document upload (non-technical flow) | IN PROGRESS | building | 2026-09-30 |
 | D21 | Guided intake: agent interview (clarifying questions until research-ready) | NOT STARTED | | |
 | D22 | Analysis report in GUI (facts, strong/weak points, next steps) + lawyer letter for approval | IN PROGRESS (awaiting verification) | analysis + draft approval loop | 2026-09-30 |
 | D23 | Conversational iteration: ask, add evidence, rewrite drafts | NOT STARTED | | |
