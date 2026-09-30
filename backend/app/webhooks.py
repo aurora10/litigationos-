@@ -1,11 +1,10 @@
 """Email ingestion via n8n webhook (D13). n8n forwards a normalized email; we dedupe
 (by provider_message_id), thread it, and drop it into the Inbox for review."""
-import json
 import os
 
 import psycopg
-from fastapi import APIRouter, Header, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, ValidationError
 
 from app.audit import audit
 
@@ -28,14 +27,19 @@ class EmailIn(BaseModel):
     received_at: str | None = None  # ISO
 
 
-def _check_token(x_webhook_token: str | None) -> None:
-    if x_webhook_token != WEBHOOK_TOKEN:
+# Check auth FIRST so even an invalid body without a token is 401 (not 422).
+async def _authed_body(request: Request) -> EmailIn:
+    if request.headers.get("x-webhook-token") != WEBHOOK_TOKEN:
         raise HTTPException(401, "invalid webhook token")
+    try:
+        return EmailIn(**(await request.json()))
+    except ValidationError as e:
+        raise HTTPException(422, e.errors())
 
 
 @router.post("/email", status_code=202)
-def email_webhook(body: EmailIn, x_webhook_token: str | None = Header(None)):
-    _check_token(x_webhook_token)
+async def email_webhook(request: Request):
+    body = await _authed_body(request)
     with _db() as conn:
         existing = conn.execute(
             "SELECT communication_id FROM emails WHERE provider_message_id=%s",
@@ -70,6 +74,5 @@ def email_webhook(body: EmailIn, x_webhook_token: str | None = Header(None)):
 
 
 @router.post("/outlook", status_code=202)
-def outlook_webhook(body: EmailIn, x_webhook_token: str | None = Header(None)):
-    # Same normalization; n8n adapts the provider payload
-    return email_webhook(body, x_webhook_token)
+async def outlook_webhook(request: Request):
+    return await email_webhook(request)
