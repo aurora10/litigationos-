@@ -1,0 +1,28 @@
+[
+  {
+    "name": "email-to-litigationos",
+    "nodes": [
+      {
+        "parameters": {"pollTimes": {"item": [{"mode": "everyMinute"}]}, "filters": {"q": ""}, "options": {}},
+        "id": "gmail-trigger", "name": "Gmail Trigger", "type": "n8n-nodes-base.gmailTrigger", "typeVersion": 1,
+        "position": [240, 300], "credentials": {"gmailOAuth2": {"id": "", "name": "Gmail account (set at import)"}}
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://backend:8000/api/webhooks/email",
+          "sendHeaders": true,
+          "headerParameters": {"parameters": [{"name": "X-Webhook-Token", "value": "={{$env.WEBHOOK_TOKEN}}"}]},
+          "sendBody": true, "specifyBody": "json",
+          "jsonBody": "={\"provider_message_id\": \"{{$json.id}}\", \"thread_id\": \"{{$json.threadId}}\", \"sender\": \"{{$json.from}}\", \"recipients\": [{{$json.to}}], \"subject\": \"{{$json.subject}}\", \"body\": \"{{$json.text}}\", \"received_at\": \"{{$json.date}}\" }"
+        },
+        "id": "post-to-backend", "name": "To LitigationOS inbox", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.1,
+        "position": [520, 300]
+      }
+    ],
+    "connections": { "Gmail Trigger": { "main": [[ { "node": "To LitigationOS inbox", "type": "main", "index": 0 } ]] } },
+    "active": false,
+    "settings": {},
+    "id": "1"
+  }
+]

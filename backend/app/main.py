@@ -4,7 +4,7 @@ import os
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import agent, auth_routes, cases, citations, documents, health, inbox, issues, search, timeline
+from app import agent, auth_routes, cases, citations, documents, health, inbox, issues, search, timeline, webhooks
 from app.db import apply_migrations
 from app.deps import current_user_id
 
@@ -38,3 +38,4 @@ app.include_router(issues.router, prefix="/api", dependencies=[Depends(current_u
 app.include_router(search.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(citations.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(agent.router, prefix="/api", dependencies=[Depends(current_user_id)])
+app.include_router(webhooks.router, prefix="/api")  # webhooks: auth by shared token header
