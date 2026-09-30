@@ -6,8 +6,11 @@ cd "$(dirname "$0")/.."
 BASE=http://localhost:8000/api
 EMAIL=${OWNER_EMAIL:-owner@localhost.dev}
 PASS=${OWNER_PASSWORD:-change-me-now}
-TOKEN=$(curl -sf -X POST "$BASE/auth/login" -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+LOGIN_RESP=$(curl -sS -X POST "$BASE/auth/login" -H "Content-Type: application/json" \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}") || { echo "FAIL: cannot reach backend /api/auth/login"; exit 1; }
+[ -n "$LOGIN_RESP" ] || { echo "FAIL: empty login response (backend up? curl localhost:8000/health)"; exit 1; }
+TOKEN=$(echo "$LOGIN_RESP" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])" 2>/dev/null) \
+  || { echo "FAIL: login did not return access_token; response was:"; echo "$LOGIN_RESP"; exit 1; }
 AUTH="Authorization: Bearer $TOKEN"
 
 CID=$(curl -sf -X POST "$BASE/cases" -H "$AUTH" -H "Content-Type: application/json" \
