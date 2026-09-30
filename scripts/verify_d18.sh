@@ -6,9 +6,10 @@ cd "$(dirname "$0")/.."
 export DOMAIN
 
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-for i in $(seq 1 30); do
+code=000
+for i in $(seq 1 60); do
   sleep 2
-  code=$(curl -sk -o /dev/null -w "%{http_code}" "https://$DOMAIN/health" || echo 000)
+  code=$(curl -sk -o /dev/null -w "%{http_code}" "https://$DOMAIN/health")
   [ "$code" = "200" ] && break
 done
 [ "$code" = "200" ] || { echo "FAIL: https://$DOMAIN/health returned $code"; exit 1; }
