@@ -31,7 +31,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D15 | Deadlines & dashboard | DONE | == D15 PASS == on reviewer's Mac (deadline approve + execute gate creates OUT comm) | 2026-09-30 |
 | D16 | Audit & approvals enforcement | DONE | == D16 PASS == on reviewer's Mac (append-only triggers verified) | 2026-09-30 |
 | D17 | Security hardening & backup | IN PROGRESS | building | 2026-09-30 |
-| D18 | Production deployment (Belgium go-live) | NOT STARTED | | |
+| D18 | Production deployment (Belgium go-live) | IN PROGRESS (awaiting human verification) | caddy prod compose + verify script | 2026-09-30 | |
 
 Statuses: `NOT STARTED | IN PROGRESS | BLOCKED (reason) | DONE`. A deliverable is DONE only when its Acceptance block has been executed with real output pasted into its **Verification record**, and this table row updated.
 
