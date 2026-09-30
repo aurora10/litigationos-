@@ -1,18 +1,22 @@
-# Reverse proxy (Caddy) for production: TLS termination + route to frontend/backend.
-# Requires a real domain + DNS pointing at the host.
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [backend, frontend]
+    networks: [litnet]
 
-caddy:
-  image: caddy:2-alpine
-  restart: unless-stopped
-  ports:
-    - "80:80"
-    - "443:443"
-  volumes:
-    - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    - caddy_data:/data
-    - caddy_config:/config
-  depends_on: [backend, frontend]
-  networks: [litnet]
+  # Prod: don't bind app ports directly; only Caddy faces the network
+  backend:
+    ports: []
+  frontend:
+    ports: []
 
 volumes:
   caddy_data:
