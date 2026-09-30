@@ -60,6 +60,21 @@ export default function CasePage({ params }: { params: { id: string } }) {
     if (r.ok) setDrafts(await r.json());
   }
 
+  async function approve(draftId: string, approve: boolean) {
+    const to = prompt("Send to (email):", "advocaat@example.be")!;
+    const subject = prompt("Subject:", "Update dossier")!;
+    // find approval id
+    const sub = await fetch(`${API}/api/drafts/${draftId}/submit?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}`, {
+      method: "POST", headers: { Authorization: `Bearer ${token()}` },
+    });
+    if (!sub.ok) { setError("submit failed"); return; }
+    const { approval_id } = await sub.json();
+    const r = await fetch(`${API}/api/approvals/${approval_id}/${approve ? "approve" : "reject"}`, {
+      method: "POST", headers: { Authorization: `Bearer ${token()}` },
+    });
+    if (r.ok) listDrafts();
+  }
+
   return (
     <main style={{ fontFamily: "sans-serif", padding: "1.5rem", maxWidth: 1100, margin: "0 auto" }}>
       <h1>Case</h1>
@@ -95,6 +110,7 @@ export default function CasePage({ params }: { params: { id: string } }) {
           {drafts.map((d: any) => (
             <li key={d.id}>
               <b>{d.kind}</b> — <i>{d.status}</i>
+              {d.status === "DRAFT" && <> <button onClick={() => approve(d.id, true)}>Approve</button> <button onClick={() => approve(d.id, false)}>Reject</button></>}
               <details><summary>view</summary><pre style={{ whiteSpace: "pre-wrap" }}>{d.body}</pre></details>
             </li>
           ))}

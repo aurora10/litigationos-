@@ -11,13 +11,17 @@ export default function Home() {
 
   useEffect(() => {
     fetch(`${API}/health`).then(r => r.json()).then(setHealth).catch(() => setHealth({ status: "unreachable" }));
+    const t = localStorage.getItem("access_token");
+    if (t) loadCases();
   }, []);
 
   const token = () => localStorage.getItem("access_token") ?? "";
 
-  async function login() {
-    const email = prompt("email", "owner@localhost.dev")!;
-    const password = prompt("password")!;
+  async function login(e: React.FormEvent) {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
     const r = await fetch(`${API}/api/auth/login`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -44,20 +48,32 @@ export default function Home() {
   }
 
   return (
-    <main style={{ fontFamily: "sans-serif", padding: "2rem", maxWidth: 720, margin: "0 auto" }}>
+    <main style={{ fontFamily: "sans-serif", padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
       <h1>LitigationOS</h1>
-      <p>Backend: <code>{JSON.stringify(health)}</code></p>
-      <button onClick={login}>Log in</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <h2>Cases</h2>
-      <p><button onClick={loadCases}>Refresh</button></p>
-      {cases === null ? <p><i>Log in to view cases.</i></p> : (
+      <p style={{ color: "#666" }}>Backend: <code>{health?.status ?? "…"}</code></p>
+
+      {cases === null ? (
+        <form onSubmit={login}>
+          <h2>Log in</h2>
+          <p><input name="email" placeholder="email" defaultValue="owner@localhost.dev" /></p>
+          <p><input name="password" type="password" placeholder="password" /></p>
+          <button type="submit">Log in</button>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </form>
+      ) : (
         <>
-          <ul>{cases.map((c: any) => <li key={c.id}>{c.title} — {c.status}</li>)}</ul>
+          <h2>Cases</h2>
+          <ul>
+            {cases.map((c: any) => (
+              <li key={c.id}><a href={`/cases/${c.id}`}>{c.title}</a> — {c.status}</li>
+            ))}
+          </ul>
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="New case title" />
           <button onClick={createCase} disabled={!title}>Create</button>
         </>
       )}
+
+      <p style={{ marginTop: "2rem" }}><a href="/logs">Logs</a></p>
     </main>
   );
 }
