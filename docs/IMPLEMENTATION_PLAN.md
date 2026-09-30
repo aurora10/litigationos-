@@ -22,7 +22,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D06 | Inbox & classification + review queue | DONE | == D06 PASS == on reviewer's Mac | 2026-09-29 |
 | D07 | Timeline + provenance | DONE | == D07 PASS == on reviewer's Mac | 2026-09-29 |
 | D08 | Evidence, Claims & Issue tree | DONE | == D08 PASS == on reviewer's Mac | 2026-09-29 |
-| D09 | Search (full-text + semantic) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
+| D09 | Search (full-text + semantic) | DONE | == D09 PASS == on reviewer's Mac | 2026-09-29 |
 | D10 | Agent runtime core (LangGraph + tools + activity feed) | DONE | == D10 PASS == on reviewer's Mac — real gpt-4o-mini call, enforced 5-section output | 2026-09-29 |
 | D11 | Agent roles (incl. Adversarial loop) | DONE | == D11 PASS == on reviewer's Mac | 2026-09-29 |
 | D12 | Citation-verification gate | DONE | == D12 PASS == on reviewer's Mac (VERIFIED + UNVERIFIABLE paths) | 2026-09-29 |
@@ -489,7 +489,116 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ---
 
+
+---
+
+## 8b. Phase 7 — User experience (added after reviewer's UX gap analysis)
+
+Goal of this phase: a **non-technical user** can run the whole system from a browser, without ever touching curl. Closes the gap between the engine built in D01–D18 and the workflow you described.
+
+### D19 — Central structured logging
+**Goal:** one place answers "what happened and why did it fail". **Depends on:** D01.
+
+**Tasks**
+- D19-T01 `app/observability.py`: JSONL log (`/app/logs/app.jsonl`, on the `logdata` volume); http-error middleware records status ≥ 400 for every request.
+- D19-T02 `GET /api/logs?level=&limit=` — JWT-protected; returns log rows newest-first.
+- D19-T03 GUI: `/logs` page lists entries with level filter.
+
+**Acceptance**
+```bash
+./scripts/verify_d19.sh   # PASS; and in browser: http://localhost:3000/logs shows the row
+```
+
+**Verification record:** wiring committed; TestClient smoke confirms request logs land in `/app/logs/app.jsonl` and `/api/logs` requires auth. Human verify on Mac.
+
+---
+
+### D20 — Web GUI: case setup & document upload
+**Goal:** non-technical user starts from the browser, not the API. **Depends on:** D03, D04.
+
+**Tasks**
+- D20-T01 `/` (home): login + case list + "New case" form.
+- D20-T02 `/cases/[id]`: four sections — Tell the agent / Attach evidence / Analysis / Letters to lawyer.
+- D20-T03 Drag-and-drop multi-file upload → documents endpoint.
+
+**Acceptance**
+```bash
+# open http://localhost:3000, log in, create case "My deposit dispute",
+# then on its page upload one PDF scan → it appears under Attach evidence
+```
+
+**Verification record:** page at `frontend/app/cases/[id]/page.tsx`. Human verify by using it.
+
+---
+
+### D21 — Guided intake: agent interview
+**Goal:** agent doesn't charge ahead on too little data — it interviews the user until it has enough. **Depends on:** D11, D20.
+
+**Tasks**
+- D21-T01 `agent_roles.route_role`: new `'intake'` role for instructions like "help me build my case".
+- D21-T02 Intake prompt that returns exactly one question at a time, in Dutch, based on what is known vs missing (issue tree, evidence, parties, dates).
+- D21-T03 Case-page UI: "/cases/[id]" starts with an intake chat ("help me build my case") and *keeps asking* until the agent returns `READY_FOR_ANALYSIS`.
+
+**Acceptance**
+```bash
+# fresh case with only a title: send "help me build my case"
+# agent replies with ONE question; answering it triggers the next question;
+# after enough Q&A the agent switches to the analysis automatically
+```
+
+---
+
+### D22 — Analysis report in GUI + lawyer letter for approval
+**Goal:** analysis output is readable by a non-lawyer, and the "send to lawyer" draft is one click. **Depends on:** D11, D14, D20.
+
+**Tasks**
+- D22-T01 `/cases/[id]` Analysis section renders the 12-section brief.
+- D22-T02 "Letters to your lawyer" section lists drafts (kind EMAIL/LETTER) with status.
+- D22-T03 Approve / Reject buttons call `POST /api/approvals/{id}/approve|reject` (already exist).
+
+**Acceptance**
+```bash
+# run Analysis on the demo case → 12 sections render
+# drafts section shows the lawyer email; click Approve → status EXECUTED (via approval)
+```
+
+**Verification record:** page routes + approve/reject wiring done. Human verify by clicking through.
+
+---
+
+### D23 — Conversational iteration
+**Goal:** user refines the case conversationally; the agent uses the updated context immediately. **Depends on:** D20, D11.
+
+**Tasks**
+- D23-T01 Any message on `/cases/[id]` is a fresh agent task using the full case context (case, issues, deadlines, evidence) — no hidden chat memory.
+- D23-T02 Follow-ups like "rewrite that shorter" or "here's a new scan" produce a new draft version (saved under drafts).
+
+**Acceptance**
+```bash
+# on case page: "here's a new scan" (+upload) → "rewrite the letter mentioning this new evidence"
+# → new draft version exists, older version retained
+```
+
+---
+
 ## 9. Appendix A — Database schema (authoritative)
+See `docs/specs/DATABASE_SCHEMA.md` — contains the full DDL contract (cases, parties, documents, document_versions, document_text, embeddings, evidence, provenance, claims, claim_sources, timeline_events, timeline_sources, issues, arguments, deadlines, communications, emails, legal_sources, legal_citations, agent_tasks, agent_actions, agent_events, drafts, approvals, audit_logs, inbox_items, inbox_proposals). Postgres 17, extensions uuid-ossp / pgvector / pg_trgm. `audit_logs` is append-only (triggers, migration 0013).
+
+## 10. Appendix B — API contract
+See `docs/specs/API_SPEC.md` — endpoint table with request/response shapes, auth, pagination, SSE events, approval endpoints. (OpenAPI 3.1 exported from code.)
+
+## 11. Appendix C — Agent tool catalog
+See `docs/specs/AGENT_SYSTEM.md` §Tools + `backend/app/agent.py` + `backend/app/research_tools.py` — every tool with input/output schemas and required permissions. Action tools (`send_email`, filing) are always approval-gated; citations are always live-verified against JuPortal/Justel/EUR-Lex.
+
+## 12. Appendix D — Belgian sources
+See `docs/specs/BELGIAN_SOURCES.md` — JuPortal (ECLI direct resolution `https://juportal.be/content/<ECLI>`), Justel (ELI article URLs, keyword form via `rech.pl`), EUR-Lex (CELEX), e-Deposit (manual in v1).
+
+## 13. Changelog
+| Date | Change | Deliverables affected |
+|---|---|---|
+| v1.0 | Initial plan | D01–D18 |
+| v1.1 | After first dogfood: added D19 (central log), D20–D23 (non-technical GUI workflow, guided intake, conversational iteration) | D19–D23 |
+ — Database schema (authoritative)
 See `docs/specs/DATABASE_SCHEMA.md` — contains the full DDL contract for: `users`, `cases`, `parties`, `documents`, `document_versions`, `document_text`, `document_embeddings`, `evidence`, `provenance`, `claims`, `claim_sources`, `timeline_events`, `timeline_sources`, `issues`, `arguments`, `deadlines`, `communications`, `emails`, `legal_sources`, `legal_citations`, `agent_tasks`, `agent_actions`, `drafts`, `approvals`, `audit_logs`, inbox tables. Postgres 17, extensions uuid-ossp / pgvector / pg_trgm.
 
 ## 10. Appendix B — API contract
