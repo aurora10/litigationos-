@@ -20,8 +20,10 @@ DLID=$(curl -sf -X POST "$BASE/cases/$CID/deadlines" -H "$AUTH" -H "Content-Type
 
 echo "== audit API shows them =="
 curl -sf "$BASE/audit?entity_id=$CID" -H "$AUTH" > /tmp/d16.json
-grep -q '"action": "INSERT"' /tmp/d16.json
-grep -q '"entity_type": "case"' /tmp/d16.json && echo "audit rows OK"
+grep -q '"action": "INSERT"' /tmp/d16.json || { echo "no INSERT rows for case"; cat /tmp/d16.json; exit 1; }
+DL_AUD=$(curl -sS "$BASE/audit?entity_id=$DLID" -H "$AUTH")
+echo "$DL_AUD" | grep -q '"entity_type": "deadline"' || { echo "no deadline audit"; echo "$DL_AUD"; exit 1; }
+echo "audit rows OK (case + deadline)"
 
 echo "== append-only enforced (triggers) =="
 docker compose exec -T db psql -U "${POSTGRES_USER:-litigation}" -d "${POSTGRES_DB:-litigation}" -c \
