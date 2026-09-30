@@ -28,7 +28,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D12 | Citation-verification gate | DONE | == D12 PASS == on reviewer's Mac (VERIFIED + UNVERIFIABLE paths) | 2026-09-29 |
 | D13 | Email ingestion via n8n | DONE | == D13 PASS == on reviewer's Mac (auth+dedupe+inbox routing) | 2026-09-30 |
 | D14 | Drafting & approval workflow | DONE | == D14 PASS == on reviewer's Mac (real gpt-4o-mini draft → approve → EXECUTE gate) | 2026-09-30 |
-| D15 | Deadlines & dashboard | IN PROGRESS | building | 2026-09-30 |
+| D15 | Deadlines & dashboard | IN PROGRESS (awaiting human verification) | code complete, verify on Mac | 2026-09-30 |
 | D16 | Audit & approvals enforcement | NOT STARTED | | |
 | D17 | Security hardening & backup | NOT STARTED | | |
 | D18 | Production deployment (Belgium go-live) | NOT STARTED | | |
