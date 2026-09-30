@@ -1,32 +1,30 @@
-# Caddy serves the app at:
-#  - http://localhost:80   (local smoke — no TLS, ACME can't issue for "localhost")
-#  - https://{$DOMAIN}     (real domain in prod, when DOMAIN is a public hostname with DNS set)
+# Serves:
+#  - http://localhost:80   (local smoke; no ACME possible for "localhost")
+#  - https://{$DOMAIN}     (real domain in prod when DOMAIN is a public hostname)
 #
-# For local, DOMAIN=localhost makes the second site block a no-op.
+# When DOMAIN=localhost, the https site block expands to https://localhost
+# which is what the environment intends for local verification anyway.
 
-http://localhost
-
-handle /api/* {
-  reverse_proxy backend:8000
+http://localhost {
+  handle /api/* {
+    reverse_proxy backend:8000
+  }
+  handle /health {
+    reverse_proxy backend:8000
+  }
+  handle {
+    reverse_proxy frontend:3000
+  }
 }
-handle /health {
-  reverse_proxy backend:8000
-}
-handle {
-  reverse_proxy frontend:3000
-}
 
-
-https://{$DOMAIN}
-
-tls {$TLS_EMAIL:-internal}
-
-handle /api/* {
-  reverse_proxy backend:8000
-}
-handle /health {
-  reverse_proxy backend:8000
-}
-handle {
-  reverse_proxy frontend:3000
+https://{$DOMAIN} {
+  handle /api/* {
+    reverse_proxy backend:8000
+  }
+  handle /health {
+    reverse_proxy backend:8000
+  }
+  handle {
+    reverse_proxy frontend:3000
+  }
 }
