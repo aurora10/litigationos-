@@ -1,5 +1,4 @@
-# Set DOMAIN in .env (e.g. DOMAIN=cases.yourdomain.be) and point DNS at this host.
-{$DOMAIN:80}
+{$DOMAIN}
 
 handle /api/* {
   reverse_proxy backend:8000
