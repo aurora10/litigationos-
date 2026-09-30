@@ -11,7 +11,7 @@ def route_role(instruction: str) -> str:
         return "research"
     if any(k in t for k in ("attack", "opposing", "weakness", "counterarg", "adversar", "risico", "risks")):
         return "adversarial"
-    if any(k in t for k in ("draft", "brief", "letter", "email", "schrijf", "write to")):
+    if any(k in t for k in ("draft", "brief", "letter", "email", "schrijf", "write to", "prepare lawyer", "meeting with lawyer", "prepare my lawyer", "briefing")):
         return "drafting"
     if any(k in t for k in ("timeline", "chronolog", "chronology", "dates", "when did")):
         return "timeline"

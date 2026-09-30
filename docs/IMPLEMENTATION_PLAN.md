@@ -25,7 +25,7 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D09 | Search (full-text + semantic) | IN PROGRESS (awaiting human verification) | smoke-passed on dev VPS | 2026-09-29 |
 | D10 | Agent runtime core (LangGraph + tools + activity feed) | DONE | == D10 PASS == on reviewer's Mac — real gpt-4o-mini call, enforced 5-section output | 2026-09-29 |
 | D11 | Agent roles (incl. Adversarial loop) | DONE | == D11 PASS == on reviewer's Mac | 2026-09-29 |
-| D12 | Citation-verification gate | IN PROGRESS | building | 2026-09-29 |
+| D12 | Citation-verification gate | IN PROGRESS (awaiting human verification) | parsers+resolver verified on dev VPS | 2026-09-29 |
 | D13 | Email ingestion via n8n | NOT STARTED | | |
 | D14 | Drafting & approval workflow | NOT STARTED | | |
 | D15 | Deadlines & dashboard | NOT STARTED | | |
@@ -374,6 +374,15 @@ git pull && docker compose up -d --build backend   # (installs openai pkg)
 POST task asking for applicable law on huurwaarborg
 → every legal claim in answer has legal_citations row with status VERIFIED or explicit UNVERIFIABLE flag
 ```
+
+**Verification record:** ECLI/ELI/CELEX parser + JuPortal resolver checked live on dev VPS (valid ECLI → 200; malformed → None); `verify_d12.sh` asserts: fabricated no-citation claim is 400-rejected, a real ECLI citation resolves to a stored verdict, malformed ECLI → UNVERIFIABLE.
+
+**Human verification (reviewer):**
+```bash
+git pull && docker compose up -d --build backend
+./scripts/verify_d12.sh    # expect: == D12 PASS ==
+```
+
 
 ---
 
