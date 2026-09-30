@@ -30,8 +30,16 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D14 | Drafting & approval workflow | DONE | == D14 PASS == on reviewer's Mac (real gpt-4o-mini draft → approve → EXECUTE gate) | 2026-09-30 |
 | D15 | Deadlines & dashboard | DONE | == D15 PASS == on reviewer's Mac (deadline approve + execute gate creates OUT comm) | 2026-09-30 |
 | D16 | Audit & approvals enforcement | DONE | == D16 PASS == on reviewer's Mac (append-only triggers verified) | 2026-09-30 |
-| D17 | Security hardening & backup | IN PROGRESS | building | 2026-09-30 |
-| D18 | Production deployment (Belgium go-live) | IN PROGRESS (awaiting human verification) | caddy prod compose + verify script | 2026-09-30 | |
+| D17 | Security hardening & backup | DONE | == D17 PASS == on reviewer's Mac | 2026-09-30 |
+| D18 | Production deployment (Belgium go-live) | DONE | == D18 PASS == on reviewer's Mac (Caddy localhost smoke) | 2026-09-30 |
+
+-- from reviewer's UX gap analysis (v0.1 dogfood) --
+
+| D19 | Central structured logging | IN PROGRESS (awaiting verification) | central JSONL log + /api/logs + page | 2026-09-30 |
+| D20 | Web GUI: case setup & document upload (non-technical flow) | NOT STARTED | | |
+| D21 | Guided intake: agent interview (clarifying questions until research-ready) | NOT STARTED | | |
+| D22 | Analysis report in GUI (facts, strong/weak points, next steps) + lawyer letter for approval | IN PROGRESS (awaiting verification) | analysis + draft approval loop | 2026-09-30 |
+| D23 | Conversational iteration: ask, add evidence, rewrite drafts | NOT STARTED | | |
 
 Statuses: `NOT STARTED | IN PROGRESS | BLOCKED (reason) | DONE`. A deliverable is DONE only when its Acceptance block has been executed with real output pasted into its **Verification record**, and this table row updated.
 
