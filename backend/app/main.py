@@ -4,11 +4,14 @@ import os
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import agent, audit_viewer, auth_routes, cases, citations, deadlines, documents, drafts, health, inbox, issues, search, timeline, webhooks
+from app import agent, audit_viewer, auth_routes, cases, citations, deadlines, documents, drafts, health, inbox, issues, logs_api, search, timeline, webhooks
 from app.db import apply_migrations
 from app.deps import current_user_id
+from app.observability import log, log_middleware_factory
 
 app = FastAPI(title="LitigationOS API", version="0.2.0")
+log_middleware_factory(app)
+log("app", "info", "startup")
 
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")]
 app.add_middleware(
@@ -37,6 +40,7 @@ app.include_router(timeline.router, prefix="/api", dependencies=[Depends(current
 app.include_router(issues.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(search.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(citations.router, prefix="/api", dependencies=[Depends(current_user_id)])
+app.include_router(logs_api.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(agent.router, prefix="/api", dependencies=[Depends(current_user_id)])
 app.include_router(webhooks.router, prefix="/api")  # webhooks: auth by shared token header
 app.include_router(drafts.router, prefix="/api", dependencies=[Depends(current_user_id)])  # drafts: auth by JWT
