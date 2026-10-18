@@ -4,6 +4,7 @@ import json
 from app import llm
 from app.research_tools import juportal_search, justel_search
 from app import intake
+from app import d23_conversation
 
 
 def route_role(instruction: str) -> str:
@@ -20,6 +21,8 @@ def route_role(instruction: str) -> str:
         return "evidence"
     if any(k in t for k in ("intake", "help me build", "help build", "build my case", "interview me", "stap voor stap")):
         return "intake"
+    if any(k in t for k in ("rewrite", "make it shorter", "make it longer", "add evidence", "update draft", "change tone", "version", "herziene", "herzi", "aanpassen", "wijzig")):
+        return "d23"
     return "case_manager"
 
 
@@ -82,6 +85,20 @@ def build_prompt(role: str, base_context: dict, instruction: str) -> str:
         else:
             # It's a question — store state for next turn
             base_context["intake"] = {"asked": asked + [turn], "answers": answers}
+            return turn
+    if role == "d23":
+        # Conversational iteration on a draft
+        draft_id = base_context.get("draft_id")
+        draft_kind = base_context.get("draft_kind", "EMAIL")
+        draft_body = base_context.get("draft_body", "")
+        new_evidence = base_context.get("new_evidence", "")
+        turn = d23_conversation.run_d23_turn(draft_id, draft_kind, draft_body, base_context, new_evidence, instruction)
+        if turn.strip().startswith("EVIDENCE_ADDED:"):
+            base_context["new_evidence"] = base_context.get("new_evidence", "") + "\n" + turn.replace("EVIDENCE_ADDED: ", "")
+            return turn
+        else:
+            # It's a new draft version
+            base_context["draft_body"] = turn
             return turn
     return llm.complete(f"Case context:\n{ctx}\n\nTask: {instruction}", system=SYSTEM_FALLBACK)
 
