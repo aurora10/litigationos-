@@ -3,6 +3,7 @@ import json
 
 from app import llm
 from app.research_tools import juportal_search, justel_search
+from app import intake
 
 
 def route_role(instruction: str) -> str:
@@ -17,6 +18,8 @@ def route_role(instruction: str) -> str:
         return "timeline"
     if any(k in t for k in ("evidence", "bewijs", "source", "gap", "missing")):
         return "evidence"
+    if any(k in t for k in ("intake", "help me build", "help build", "build my case", "interview me", "stap voor stap")):
+        return "intake"
     return "case_manager"
 
 
@@ -66,6 +69,20 @@ def build_prompt(role: str, base_context: dict, instruction: str) -> str:
         return f"ADVERSARIAL ANALYSIS\n\n=== ATTACK ===\n{answer_or_exc(attack)}\n\n=== DEFENSE ===\n{answer_or_exc(defense)}"
     if role == "drafting":
         return llm.complete(LAWYER_BRIEF + f"\n\nCase context:\n{ctx}\n\nTask: {instruction}", system="You are Legal OS's drafting agent.")
+    if role == "intake":
+        # Pull the intake state from the context (or start fresh)
+        intake_ctx = base_context.get("intake", {"asked": [], "answers": []})
+        asked = intake_ctx.get("asked", [])
+        answers = intake_ctx.get("answers", [])
+        turn = intake.run_intake_turn(instruction, base_context, asked, answers)
+        if turn.strip().startswith("READY_FOR_ANALYSIS"):
+            # Store the collected data back so the analysis can use it
+            base_context["intake_ready"] = turn
+            return turn
+        else:
+            # It's a question — store state for next turn
+            base_context["intake"] = {"asked": asked + [turn], "answers": answers}
+            return turn
     return llm.complete(f"Case context:\n{ctx}\n\nTask: {instruction}", system=SYSTEM_FALLBACK)
 
 
