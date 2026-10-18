@@ -38,8 +38,8 @@ Four levels: **Phase → Deliverable (D01…D18) → Task (D05-T02) → Acceptan
 | D19 | Central structured logging | DONE | == D19 PASS == on reviewer's Mac | 2026-09-30 |
 | D20 | Web GUI: case setup & document upload (non-technical flow) | IN PROGRESS | building | 2026-09-30 |
 | D21 | Guided intake: agent interview (clarifying questions until research-ready) | DONE | == D21 PASS == on reviewer's Mac (agent asks one Dutch question at a time) | 2026-10-18 |
-| D22 | Analysis report in GUI (facts, strong/weak points, next steps) + lawyer letter for approval | IN PROGRESS (awaiting verification) | analysis + draft approval loop | 2026-09-30 |
-| D23 | Conversational iteration: ask, add evidence, rewrite drafts | NOT STARTED | | |
+| D22 | Analysis report in GUI (facts, strong/weak points, next steps) + lawyer letter for approval | DONE | == D22 PASS == on reviewer's Mac (12-section brief + approve/reject buttons) | 2026-10-18 |
+| D23 | Conversational iteration: ask, add evidence, rewrite drafts | IN PROGRESS | building | 2026-10-18 |
 
 Statuses: `NOT STARTED | IN PROGRESS | BLOCKED (reason) | DONE`. A deliverable is DONE only when its Acceptance block has been executed with real output pasted into its **Verification record**, and this table row updated.
 
